@@ -1,0 +1,208 @@
+/*TASK 1 :Create a database called college_db , Create tables: */
+
+//Create DB
+CREATE DATABASE college_db;
+
+USE college_db;
+
+//Tables:
+
+CREATE TABLE STUDENTS (
+    student_id BIGINT PRIMARY KEY,
+    name VARCHAR(100),
+    email VARCHAR(150) UNIQUE,
+    age INT,
+    join_date DATE,
+    active_flag BIT DEFAULT 1
+);
+
+
+CREATE TABLE COURSES (
+    course_id INT PRIMARY KEY,
+    course_name VARCHAR(100) NOT NULL,
+    fees DECIMAL(10, 2)
+);
+
+
+CREATE TABLE ENROLLMENT (
+    enroll_id BIGINT PRIMARY KEY,
+    student_id BIGINT,
+    course_id INT,
+    enroll_timestamp DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+
+    CONSTRAINT fk_student
+        FOREIGN KEY (student_id) REFERENCES STUDENTS(student_id),
+    CONSTRAINT fk_course
+        FOREIGN KEY (course_id) REFERENCES COURSES(course_id)
+);
+
+
+
+/*TASK 2 :Insert Sample Data */
+
+INSERT INTO STUDENTS (student_id, name, email, age, join_date, active_flag) VALUES
+(101, 'Amit',   'amit@gmail.com',   20, '2023-06-01', 1),
+(102, 'Riya',   'riya@gmail.com',   21, '2023-06-05', 1),
+(103, 'Kunal',  'kunal@gmail.com',  22, '2023-06-10', 1),
+(104, 'Sneha',  'sneha@gmail.com',  19, '2023-06-12', 1),
+(105, 'Arjun',  'arjun@gmail.com',  23, '2023-06-15', 0),
+(106, 'Neha',   'neha@gmail.com',   20, '2023-06-18', 1),
+(107, 'Rohit',  'rohit@gmail.com',  21, '2023-06-20', 1),
+(108, 'Pooja',  'pooja@gmail.com',  22, '2023-06-22', 1),
+(109, 'Manoj',  'manoj@gmail.com',  24, '2023-06-25', 0),
+(110, 'Anita',  'anita@gmail.com',  20, '2023-06-28', 1);
+
+
+INSERT INTO COURSES (course_id, course_name, fees) VALUES
+(1, 'Java',        15000.50),
+(2, 'Python',     14000.00),
+(3, 'Web Dev',    12000.75),
+(4, 'Data Science',20000.00),
+(5, 'SQL',         8000.25);
+
+
+
+INSERT INTO ENROLLMENT (enroll_id, student_id, course_id) VALUES
+(501, 101, 1),
+(502, 101, 2),
+(503, 102, 1),
+(504, 102, 3),
+(505, 103, 2),
+(506, 103, 4),
+(507, 104, 3),
+(508, 104, 5),
+(509, 105, 1),
+(510, 106, 4),
+(511, 106, 5),
+(512, 107, 2),
+(513, 108, 3),
+(514, 109, 1),
+(515, 110, 5);
+
+
+/*TASK 3:INSERT, SELECT, UPDATE, DELETE, ALTER */
+//INSERT
+
+INSERT INTO STUDENTS (student_id, name, email, age, join_date, active_flag)
+VALUES
+(111, 'Varun', 'varun@gmail.com', 21, '2024-01-10', 1),
+(112, 'Meena', 'meena@gmail.com', 22, '2024-01-12', 1),
+(113, 'Suresh', 'suresh@gmail.com', 23, '2024-01-15', 0);
+
+INSERT INTO COURSES (course_id, course_name, fees)
+VALUES
+(6, 'Artificial Intelligence', 95000.00);
+
+INSERT INTO ENROLLMENT (enroll_id, student_id, course_id)
+VALUES
+(516, 111, 6),
+(517, 112, 6),
+(518, 113, 6);
+
+//SELECT
+select * from STUDENTS;
+select name, email from STUDENTS;
+select * from STUDENTS order by age DESC;
+select TOP 5 * from STUDENTS ORDER BY join_date ASC;
+select DISTINCT age from STUDENTS;
+select DISTINCT course_name from COURSES;
+
+//UPDATE 
+UPDATE STUDENTS SET age = 22 WHERE student_id = 102;
+UPDATE STUDENTS SET active_flag = 0 WHERE student_id IN (102, 112);
+UPDATE COURSES SET fees = fees + (fees * 10 / 100);
+
+//DELETE
+DELETE FROM STUDENTS WHERE student_id = 113;
+DELETE FROM COURSES WHERE fees < 1000;
+DELETE FROM ENROLLMENTS WHERE enroll_timestamp < '2025-01-01';
+
+//ALTER
+ALTER TABLE STUDENTS ALTER COLUMN name VARCHAR(200);
+EXEC sp_rename 
+    'dbo.STUDENTS.join_date',
+    'registration_date',
+    'COLUMN';
+ALTER TABLE STUDENTS ADD phone_number VARCHAR(15);
+
+/*TASK 4 :WHERE, AND / OR, LIKE Pattern, NULL Checks*/
+
+//WHERE
+select name,age from STUDENTS where age>21;
+select name,active_flag from STUDENTS where active_flag=1;
+select course_name,fees from COURSES where fees between 8000 AND 15000;
+select * from STUDENTS where age IN (20, 22, 25);
+
+//AND/OR
+SELECT * FROM STUDENTS WHERE age > 20 AND active_flag = 1;
+SELECT * FROM STUDENTS WHERE age < 20 OR active_flag = 0;
+SELECT * FROM COURSES WHERE fees > 20000 AND course_name LIKE '%Data%';
+
+//LIKE Pattern
+SELECT * FROM STUDENTS WHERE email LIKE '%gmail.com';
+SELECT * FROM COURSES WHERE course_name LIKE 'Data%';
+
+//NULL Checks
+INSERT INTO STUDENTS (student_id, name, email, age, registration_date, active_flag)
+VALUES (114, 'Ramesh', 'ramesh@gmail.com', NULL, '2026-02-03', 1);
+
+SELECT * FROM STUDENTS WHERE age IS NULL;
+
+SELECT * FROM STUDENTS WHERE age IS NOT NULL;
+
+/*TASK 5:COUNT, SUM / AVG, MIN / MAX, GROUP BY, HAVING */
+
+//COUNT
+SELECT COUNT(*) AS total_students FROM STUDENTS;
+SELECT COUNT(*) AS active_students FROM STUDENTS WHERE active_flag = 1;
+
+//SUM/AVG
+SELECT SUM(fees) AS total_fees FROM COURSES;
+SELECT AVG(fees) AS average_fee FROM COURSES;
+SELECT SUM(fees) AS sum_high_fee FROM COURSES WHERE fees > 100000;
+
+//MIN/MAX
+SELECT MIN(age) AS min_age FROM STUDENTS;
+SELECT MAX(fees) AS max_fee FROM COURSES;
+SELECT MAX(registration_date) AS latest_join FROM STUDENTS;
+SELECT MIN(registration_date) AS oldest_join FROM STUDENTS;
+
+//GROUP BY
+SELECT active_flag, COUNT(*) AS total
+FROM STUDENTS
+GROUP BY active_flag;
+
+SELECT age, COUNT(*) AS total
+FROM STUDENTS
+GROUP BY age
+
+SELECT course_name, SUM(fees) AS total_fees
+FROM COURSES
+GROUP BY course_name;
+
+//Having Clause
+SELECT course_id, COUNT(*) AS total_enrollments
+FROM ENROLLMENT
+GROUP BY course_id
+HAVING COUNT(*) > 3;
+
+
+SELECT active_flag, AVG(age) AS avg_age
+FROM STUDENTS
+GROUP BY active_flag
+HAVING AVG(age) > 21;
+
+SELECT c.course_name, COUNT(e.enroll_id) AS total_enrollments
+FROM COURSES c
+JOIN ENROLLMENT e
+    ON c.course_id = e.course_id
+GROUP BY c.course_name
+HAVING COUNT(e.enroll_id) > 2;
+
+/* TASK 6 : Combined Queries*/
+
+SELECT * FROM STUDENTS WHERE age > 20 ORDER BY age;
+SELECT COUNT(*) AS total_students FROM STUDENTS WHERE name LIKE '%a%';
+SELECT * FROM COURSES WHERE fees BETWEEN 15000 AND 20000 ORDER BY fees;
+SELECT * FROM STUDENTS WHERE active_flag = 0 AND age IS NOT NULL;
+SELECT course_id, COUNT(*) AS total_enrollments FROM ENROLLMENT GROUP BY course_id  HAVING COUNT(*) > 1;
